@@ -280,6 +280,10 @@ class NosyProject:
       self.builder = RakeBuilder()
     elif (self.type == "django"):
       self.builder = DjangoBuilder()
+      try:
+        self.builder.apps = cp.get('nosy', 'test_apps')
+      except ConfigParser.NoOptionError:
+        self.builder.apps = ''
     elif (self.type == "generic"):
       command = cp.get('nosy', 'command')
       self.builder = GenericBuilder(command)
@@ -545,11 +549,17 @@ class GradleBuilder(Builder):
     return res, test_results
 
 class DjangoBuilder(Builder):
+  def __init__(self, apps=''):
+    if hasattr(Builder, '__init__'):
+      Builder.__init__(self)
+    self.apps=apps
+
   def get_default_monitored_paths(self):
     return "**.py"
 
   def build(self):
-    res = self.run('python ./manage.py test')
+    res = self.run('python ./manage.py test %s' %(self.apps or ''))
+    print 'Django apps tested: %s' % (self.apps or 'all')
 #    test_results = parse_xunit_results('nosetests.xml')
     return res, None
 
