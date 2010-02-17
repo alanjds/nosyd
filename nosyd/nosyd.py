@@ -12,7 +12,7 @@ from xunit import *
 from utils import *
 import cache
 
-version="0.0.6"
+version="0.0.6-aj"
 
 class NosydException(Exception):
   def __init__(self, value):
@@ -383,21 +383,21 @@ class Notifier:
       msg2 += ", ".join(r.list_failure_names())
     else:
       msg1, msg2 = os.path.basename(project.project_dir) + " build failed.", project.project_dir + ": build failed."
-    self.notify(msg1, msg2, Notifier.URGENCY_CRITICAL)
+    self.notify(msg1, msg2, Notifier.URGENCY_CRITICAL, icon='error')
 
   def notifySuccess(self, r, project):
     if (r):
       msg1, msg2 = os.path.basename(project.project_dir) + " build successfull.", project.project_dir + ": " + str(r.tests - r.skip) + " tests passed."
     else:
       msg1, msg2 = os.path.basename(project.project_dir) + " build successful.", project.project_dir + ": build successful."
-    self.notify(msg1, msg2)
+    self.notify(msg1, msg2, icon='apply')
 
   def notifyFixed(self, r, project):
     if (r):
       msg1, msg2 = os.path.basename(project.project_dir) + " build fixed.", project.project_dir + ": " + str(r.tests - r.skip) + " tests passed."
     else:
       msg1, msg2 = os.path.basename(project.project_dir) + " build Fixed.", project.project_dir + ": build fixed."
-    self.notify(msg1, msg2, Notifier.URGENCY_NORMAL)
+    self.notify(msg1, msg2, Notifier.URGENCY_NORMAL, icon='apply')
 
   def is_supported(self):
     '''To implement in subclass'''
@@ -418,7 +418,7 @@ class PyNotifier(Notifier):
     except:
       return False
 
-  def notify(self, msg1, msg2, urgency=Notifier.URGENCY_LOW):
+  def notify(self, msg1, msg2, urgency=Notifier.URGENCY_LOW, icon=None):
 
     if not self.is_supported():
       raise NosydException("PyNotifier unsupported")
@@ -432,6 +432,26 @@ class PyNotifier(Notifier):
     pyurgency = pyurgencies[urgency]
     n = pynotify.Notification(msg1, msg2)
     n.set_urgency(pyurgency)
+
+    if icon:
+      try:
+        import gtk
+        helper = gtk.Button()
+        
+        found_icon = None
+        gtk_stock_name = 'STOCK_%s'+icon.upper()
+        gtk_stock_families = ['', 'DIALOG_','MEDIA_','ORIENTATION_','PRINT_']
+        for family in gtk_stock_families:
+          if hasattr(gtk, gtk_stock_name % family):
+            found_icon = getattr(gtk, gtk_stock_name % family)
+            break
+        
+        if found_icon:
+          icon_pixbuf = helper.render_icon(found_icon, gtk.ICON_SIZE_DIALOG)
+          n.set_icon_from_pixbuf(icon_pixbuf)
+      except Exception, e:
+        raise e
+
     if not n.show():
       print "Failed to send notification"
 
@@ -441,7 +461,7 @@ class SysOutNotifier(Notifier):
   def is_supported(self):
     return True
 
-  def notify(self, msg1, msg2, urgencyIgnored=Notifier.URGENCY_LOW):
+  def notify(self, msg1, msg2, urgencyIgnored=Notifier.URGENCY_LOW, icon=None):
     self.logger.info(msg1 + " " + msg2)
 
 
@@ -466,7 +486,7 @@ class GrowlNotifier(Notifier):
     except:
       return False
 
-  def notify(self, msg1, msg2, urgency=Notifier.URGENCY_LOW):
+  def notify(self, msg1, msg2, urgency=Notifier.URGENCY_LOW, icon=None):
     import Growl
     if not self.is_supported():
       raise NosydException("GrowlNotifier unsupported")
