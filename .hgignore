@@ -1,0 +1,8 @@
+syntax: glob
+
+*.*~
+*.pyc
+*.*.swp
+build/*
+dist/*
+Nosyd.egg*
