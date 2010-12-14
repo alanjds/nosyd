@@ -290,6 +290,11 @@ class NosyProject:
     else:
       self.builder = NoseBuilder()
 
+    try:
+      self.builder.extra_options = cp.get('nosy', 'extra_options')
+    except ConfigParser.NoOptionError:
+      self.builder.extra_options = ''
+
     level = LEVELS.get(cp.get('nosy', 'logging'), logging.NOTSET)
     logging.basicConfig(level=level)
 
@@ -524,9 +529,9 @@ class TrialBuilder:
     return "*.py **/*.py"
 
   def build(self):
-    return self.run('trial'), None
+    return self.run('trial %s' % self.extra_options), None
 
-class GenericBuilder:
+class GenericBuilder(Builder):
   def __init__(self, command):
     self.command = command
 
@@ -535,7 +540,7 @@ class GenericBuilder:
 
   def build(self):
     # FIXME parse results
-    return self.run(command), None
+    return self.run(self.command+self.extra_options), None
 
 class NoseBuilder(Builder):
   def get_default_monitored_paths(self):
@@ -545,7 +550,7 @@ class NoseBuilder(Builder):
     v_env = ""
     if os.path.exists("./bin/activate"):
       v_env = ". ./bin/activate && "
-    res = self.run(v_env + 'nosetests --with-xunit')
+    res = self.run(v_env + 'nosetests --with-xunit %s' % self.extra_options)
     test_results = parse_xunit_results('nosetests.xml')
     return res, test_results
 
@@ -554,7 +559,7 @@ class RakeBuilder(Builder):
     return "app/** config/** test/**"
 
   def build(self):
-    res = self.run('rake test')
+    res = self.run('rake test %s' % self.extra_options)
 #    test_results = parse_xunit_results('nosetests.xml')
     return res, None
 
@@ -563,7 +568,7 @@ class GradleBuilder(Builder):
     return "src/** test/**"
 
   def build(self):
-    res = self.run('gradle test')
+    res = self.run('gradle test %s' % self.extra_options)
 #    test_results = parse_surefire_reports('build/test-results/', 'TEST-*.xml')
     test_results = parse_gradle_suites_results('build/test-results/TESTS-TestSuites.xml')
     return res, test_results
@@ -578,7 +583,7 @@ class DjangoBuilder(Builder):
     return "**.py"
 
   def build(self):
-    res = self.run('python ./manage.py test %s' %(self.apps or ''))
+    res = self.run('python ./manage.py test %s %s' %(self.apps, self.extra_options))
     print 'Django apps tested: %s' % (self.apps or 'all')
 #    test_results = parse_xunit_results('nosetests.xml')
     return res, None
@@ -588,7 +593,7 @@ class Maven2Builder(Builder):
     return "src/main/java/**/*.java src/test/java/**/*.java"
 
   def build(self):
-    res = self.run('mvn test')
+    res = self.run('mvn test %s' % self.extra_options)
     test_results = parse_surefire_reports('target/surefire-reports', 'TEST-*.xml')
     return res, test_results
 
