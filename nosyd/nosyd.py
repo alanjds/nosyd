@@ -583,9 +583,11 @@ class DjangoBuilder(Builder):
     return "**.py"
 
   def build(self):
-    res = self.run('python ./manage.py test %s %s' %(self.apps, self.extra_options))
-    print 'Django apps tested: %s' % (self.apps or 'all')
-#    test_results = parse_xunit_results('nosetests.xml')
+    res = self.run('python manage.py test %s %s' %(self.apps, self.extra_options))
+    if res in [126, 127, 2]: # permission denied, command (python) or file (manage.py) not found
+        res = self.run('django-admin.py test %s %s' %(self.apps, self.extra_options))
+    print 'Django test options used (including apps tested): %s' % (self.apps or '[no options -> all apps]')
+    #test_results = parse_xunit_results('nosetests.xml')
     return res, None
 
 class Maven2Builder(Builder):
