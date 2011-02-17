@@ -586,7 +586,9 @@ class DjangoBuilder(Builder):
     res = self.run('python manage.py test %s %s' %(self.apps, self.extra_options))
     if res in [126, 127, 2]: # permission denied, command (python) or file (manage.py) not found
         res = self.run('django-admin.py test %s %s' %(self.apps, self.extra_options))
-    print 'Django test options used (including apps tested): %s' % (self.apps or '[no options -> all apps]')
+    print 'Django apps tested: %s' % (self.apps or 'all')
+    if self.extra_options:
+        print 'Test options used: %s' % self.extra_options
     #test_results = parse_xunit_results('nosetests.xml')
     return res, None
 
