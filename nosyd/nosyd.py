@@ -580,7 +580,7 @@ class DjangoBuilder(Builder):
     self.apps=apps
 
   def get_default_monitored_paths(self):
-    return "**.py"
+    return "**.py **.rst"
 
   def build(self):
     res = self.run('python manage.py test %s %s' %(self.apps, self.extra_options))
