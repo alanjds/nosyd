@@ -232,7 +232,7 @@ class Nosyd:
     if not os.path.exists(path):
       open(path, 'w').close()
 
-    
+
 '''
 Watch for changes in all monitored files. If changes, run the builder.build() method.
  '''
@@ -442,7 +442,7 @@ class PyNotifier(Notifier):
       try:
         import gtk
         helper = gtk.Button()
-        
+
         found_icon = None
         gtk_stock_name = 'STOCK_%s'+icon.upper()
         gtk_stock_families = ['', 'DIALOG_','MEDIA_','ORIENTATION_','PRINT_']
@@ -450,7 +450,7 @@ class PyNotifier(Notifier):
           if hasattr(gtk, gtk_stock_name % family):
             found_icon = getattr(gtk, gtk_stock_name % family)
             break
-        
+
         if found_icon:
           icon_pixbuf = helper.render_icon(found_icon, gtk.ICON_SIZE_DIALOG)
           n.set_icon_from_pixbuf(icon_pixbuf)
