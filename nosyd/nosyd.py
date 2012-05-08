@@ -482,7 +482,11 @@ class GrowlNotifier(Notifier):
 
   def is_supported(self):
     try:
-      import Growl
+      try:
+        import Growl # For growl 1.2
+      except ImportError:
+        import gntp.notifier as Growl # For growl >= 1.3
+
       notifications = [ self.notetype ]
       defaultNotifications = None
       self.growlNotifier = Growl.GrowlNotifier("Nosyd", notifications, defaultNotifications)
@@ -492,7 +496,6 @@ class GrowlNotifier(Notifier):
       return False
 
   def notify(self, msg1, msg2, urgency=Notifier.URGENCY_LOW, icon=None):
-    import Growl
     if not self.is_supported():
       raise NosydException("GrowlNotifier unsupported")
 
